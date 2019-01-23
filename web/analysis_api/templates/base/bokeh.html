@@ -1,0 +1,13 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+  <head>
+    <title>Bokeh Scatter Plots</title>
+   <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css" type="text/css" />
+  </head>
+  <body>
+     {{ div | safe }}
+  </body>
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js"></script>
+    {{ script | safe }}
+{% endblock  %}
