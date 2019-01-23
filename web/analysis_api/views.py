@@ -10,6 +10,7 @@ from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
+from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
 from .serializers import UserSerializer, AnalysisSerializer
@@ -35,6 +36,16 @@ class AnalysisApiView(generics.ListCreateAPIView):
     def get_queryset(self):
         usr_obj = User.objects.get(username=self.request.user.username)
         return Analysis.objects.filter(user_id=usr_obj.id)
+
+    def perform_create(self, serializer):
+        analysis_obj = analyze(self.request.data['text'])
+        usr_obj = User.objects.get(username=self.request.user.username)
+        serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
+        return analysis_obj
+        # print(self.request.data['text'])
+        # print(dir(self.request.data))
+        # pass
+        # serializer.save(user=self.request.user)
 
 
 class AnalysisCreate(LoginRequiredMixin, CreateView):

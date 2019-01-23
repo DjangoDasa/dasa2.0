@@ -11,4 +11,5 @@ RUN apt-get update && \
 
 COPY . /src
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+    python -m nltk.downloader -d /usr/local/share/nltk_data all
