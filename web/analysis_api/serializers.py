@@ -22,4 +22,4 @@ class UserSerializer(serializers.ModelSerializer):
 class AnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Analysis
-        fields = ('id', 'analysis')
+        fields = ('id', 'analysis', 'date_uploaded', 'date_modified')

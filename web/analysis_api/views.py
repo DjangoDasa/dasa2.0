@@ -29,14 +29,12 @@ class UserApiView(generics.RetrieveAPIView):
 
 class AnalysisApiView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated, )
-    print('Analysis API View function hits: Line 31 analysis_api/view.py')
+    # print('Analysis API View function hits: Line 31 analysis_api/view.py')
     serializer_class = AnalysisSerializer
 
     def get_queryset(self):
-        print(self.request)
-        return Analysis.objects.filter(user__username=self.request.user.username)
-
-
+        usr_obj = User.objects.get(username=self.request.user.username)
+        return Analysis.objects.filter(user_id=usr_obj.id)
 
 
 class AnalysisCreate(LoginRequiredMixin, CreateView):
