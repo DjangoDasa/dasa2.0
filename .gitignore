@@ -106,3 +106,4 @@ venv.bak/
 /static
 static/
 /static/
+.vscode/settings.json
