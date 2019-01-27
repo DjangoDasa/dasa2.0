@@ -19,6 +19,12 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
+class UserSerializerSimple(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username')
+
 class AnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Analysis

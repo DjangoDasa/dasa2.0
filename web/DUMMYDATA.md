@@ -2,10 +2,10 @@
 
     Routes:
 
-    'POST - api/v1/auth/register - BODY:{"email": "**Your Email Here**", "password": "**Your Password Here**"}
+    'POST - api/v1/auth/register - BODY:{"username": "**You Username Here**", "email": "**Your Email Here**", "password": "**Your Password Here**"}
         -> This route will register an account in the database and return a session bearer token.
 
-    'POST - api/v1/auth/login - BODY:{"email": "**Your Email Here**", "password": "**Your Password Here**"}
+    'POST - api/v1/auth/login - BODY:{"username": "**Your Email Here**", "password": "**Your Password Here**"}
         -> This route will login to an existing account in the database and return a session bearer token.
 
     'POST - api/v1/analysis - BODY:{"text": "**Your Text Here**"}
@@ -20,7 +20,7 @@
         -> {graph_type}: stacked_bar
 
     'DELETE - api/v1/admin/delete/{user_id} - {"email": "**Admin Email**", "password": "**Admin Password**"}
-        -> This route will delete a singe user based on database id. Only admins can access this route.
+        -> This route will delete a single user based on database id. Only admins can access this route.
 
     'GET - api/v1/admin/{graph_type}/{id}
         -> This route will retrieve all of a users data if their ID is specificed.

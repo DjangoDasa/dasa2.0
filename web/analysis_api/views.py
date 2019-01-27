@@ -10,10 +10,12 @@ from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
+import json
 from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
-from .serializers import UserSerializer, AnalysisSerializer
+from .serializers import UserSerializer, UserSerializerSimple, AnalysisSerializer
+from .chart_logic import stacked_bar_for_one, Chart
 
 
 class RegisterApiView(generics.CreateAPIView):
@@ -27,6 +29,13 @@ class UserApiView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
+
+class UsersAllApiView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = UserSerializerSimple
+
+    def get_queryset(self):
+        return User.objects.all()
 
 class AnalysisApiView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated, )
@@ -48,15 +57,38 @@ class AnalysisApiView(generics.ListCreateAPIView):
         # serializer.save(user=self.request.user)
 
 
-class AnalysisCreate(LoginRequiredMixin, CreateView):
-    model = Analysis
-    form_class = AnalysisForm
-    success_url = reverse_lazy('budget_view')
-    login_url = reverse_lazy('login')
+class AnalysisGraphApiView(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AnalysisSerializer
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+    def perform_create(self, serializer, *args, **kwargs):
+        chart_type = self.kwargs['chart']
+        if chart_type == "stacked_bar":
+            analysis_obj = analyze(self.request.data['text'])
+            usr_obj = User.objects.get(username=self.request.user.username)
+            # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
+            db_analysis_obj, created = Analysis.objects.get_or_create(analysis=analysis_obj)
+
+            new_chart = Chart('stacked_bar', AnalysisSerializer(db_analysis_obj).data['analysis'])
+            # print(db_analysis_obj)
+            return new_chart.stacked_bar()
+        else:
+            return """Error: Choose a corresponding Graph:
+            -> stacked_bar
+            -> pie_chart
+            -> compound_bar
+            """
+
+
+
+    # def get_queryset(self):
+    #     usr_obj = User.objects.get(username=self.request.user.username)
+    #     user_data = Analysis.objects.filter(user_id=usr_obj.id)
+    #     for
+
+
+
+# class ChartAPIView(generics.)
 
 
 
