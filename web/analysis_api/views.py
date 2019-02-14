@@ -6,8 +6,12 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.embed import components
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 import json
@@ -49,8 +53,34 @@ class AnalysisApiView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         analysis_obj = analyze(self.request.data['text'])
         usr_obj = User.objects.get(username=self.request.user.username)
-        serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-        return analysis_obj
+        try:
+            db_analysis_obj = Analysis.objects.get(analysis=analysis_obj, user_id=usr_obj.id)
+            print('Object Exists, Successfully Retrieved')
+        except ObjectDoesNotExist:
+            db_analysis_obj = Analysis.objects.create(analysis=analysis_obj, user_id=usr_obj.id)
+            print('Object Does Not Exist, Successfully Created')
+        # serializer(db_analysis_obj)
+        res_obj = AnalysisSerializer(db_analysis_obj)
+        json_obj = JSONRenderer.render(res_obj.data)
+        print(json_obj)
+        return Response(json_obj)
+
+
+        # print(created)
+        # if created is False:
+        #     # data = {'Analysis': analysis_obj, 'user_id': usr_obj.id}
+        #     # analysis = AnalysisSerializer(db_analysis_obj, data=data)
+        #     # print(db_analysis_obj, "exists")
+        #     # analysis.is_valid()
+        #     # analysis.save()
+        #     # print(analysis)
+        #     # print('///////////')
+        #     # print(analysis.data)
+        #     # print(analysis_obj)
+        #     return db_analysis_obj
+        # print('Creating new obj')
+        # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
+        # return Response(analysis_obj.data['analysis'], status=201)
         # print(self.request.data['text'])
         # print(dir(self.request.data))
         # pass

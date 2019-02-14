@@ -33,8 +33,9 @@ class Chart():
 
 
     def data_parser(self, data):
-        record_obj = data
-        print(record_obj, "this function hits!")
+        record_obj = json.load(data)
+        print(type(record_obj), "this function hits!")
+        print(record_obj.Sentences.keys())
         for sentence in record_obj['Sentences'].keys():
             # key_list.append(sentence)
             ss = record_obj['Sentences'][sentence]
