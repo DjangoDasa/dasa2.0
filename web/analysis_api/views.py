@@ -48,7 +48,7 @@ class AnalysisApiView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         analysis_obj = analyze(self.request.data['text'])
-        usr_obj = User.objects.get(username=self.request.user.username)
+        usr_obj = User.objects.get_or_create(username=self.request.user.username)
         serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
         return analysis_obj
         # print(self.request.data['text'])
