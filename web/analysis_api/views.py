@@ -9,12 +9,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.views import APIView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 import json
+from django.http import HttpResponse
 from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
@@ -27,12 +29,14 @@ class RegisterApiView(generics.CreateAPIView):
     authentication_classes = (TokenAuthentication,)
     serializer_class = UserSerializer
 
+
 class UserApiView(generics.RetrieveAPIView):
     permission_classes = ''
     serializer_class = UserSerializer
 
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
+
 
 class UsersAllApiView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
@@ -41,59 +45,24 @@ class UsersAllApiView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.all()
 
-class AnalysisApiView(generics.ListCreateAPIView):
+
+class AnalysisApiView(APIView):
     permission_classes = (IsAuthenticated, )
-    # print('Analysis API View function hits: Line 31 analysis_api/view.py')
     serializer_class = AnalysisSerializer
 
-    def get_queryset(self):
+    def get(self, *args, **kwargs):
         usr_obj = User.objects.get(username=self.request.user.username)
-        return Analysis.objects.filter(user_id=usr_obj.id)
+        return HttpResponse(Analysis.objects.filter(user_id=usr_obj.id))
 
-    def perform_create(self, serializer):
+    def post(self, *args, **kwargs):
         analysis_obj = analyze(self.request.data['text'])
-        user_obj = User.objects.get(username=self.request.user.username)
 
-        # db_analysis_obj, created = Analysis.objects.get_or_create(analysis=analysis_obj, user_id=user_obj.id)
-        # serializer.save(db_analysis_obj)
-        # return db_analysis_obj
-        try:
-            db_analysis_obj = Analysis.objects.get(analysis=analysis_obj, user_id=user_obj.id)
-            reverse_lazy('analysis-exists', kwargs={'analysis': db_analysis_obj})
-            print('Object Exists, Successfully Retrieved')
-        except ObjectDoesNotExist:
-            db_analysis_obj = Analysis.objects.create(analysis=analysis_obj, user_id=user_obj.id)
-            print('Object Does Not Exist, Successfully Created')
-            serializer.save(db_analysis_obj)
-        # # serializer(db_analysis_obj)
-        # res_obj = AnalysisSerializer(db_analysis_obj)
-        # json_obj = JSONRenderer.render(res_obj.data)
-        # print(json_obj)
-        # return Response(json_obj)
+        usr_obj = User.objects.get(username=self.request.user.username)
+        db_analysis, created = Analysis.objects.get_or_create(
+            analysis=analysis_obj,
+            user_id=usr_obj.id)
+        return HttpResponse(db_analysis)
 
-def analysis_exists(analysis):
-    print(analysis)
-    return analysis
-
-        # print(created)
-        # if created is False:
-        #     # data = {'Analysis': analysis_obj, 'user_id': usr_obj.id}
-        #     # analysis = AnalysisSerializer(db_analysis_obj, data=data)
-        #     # print(db_analysis_obj, "exists")
-        #     # analysis.is_valid()
-        #     # analysis.save()
-        #     # print(analysis)
-        #     # print('///////////')
-        #     # print(analysis.data)
-        #     # print(analysis_obj)
-        #     return db_analysis_obj
-        # print('Creating new obj')
-        # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-        # return Response(analysis_obj.data['analysis'], status=201)
-        # print(self.request.data['text'])
-        # print(dir(self.request.data))
-        # pass
-        # serializer.save(user=self.request.user)
 
 
 class AnalysisGraphApiView(generics.ListCreateAPIView):

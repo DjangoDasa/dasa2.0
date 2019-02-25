@@ -6,7 +6,7 @@ from .views import AnalysisApiView, AnalysisGraphApiView, UsersAllApiView, analy
 
 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('', index, name='home'),
     path('user/<int:pk>', UserApiView.as_view(), name='user-detail'),
     path('users', UsersAllApiView.as_view(), name='users-all'),
     path('register', RegisterApiView.as_view(), name='register'),
