@@ -5,7 +5,7 @@ from .views import home_view, index, RegisterApiView, UserApiView, AnalysisApiVi
 
 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('', index, name='home'),
     path('user/<int:pk>', UserApiView.as_view(), name='user-detail'),
     path('register', RegisterApiView.as_view(), name='register'),
     path('login', views.obtain_auth_token),

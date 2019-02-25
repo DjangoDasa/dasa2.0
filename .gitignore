@@ -106,3 +106,5 @@ venv.bak/
 /static
 static/
 /static/
+.vscode/settings.json
+.DS_Store
