@@ -7,9 +7,11 @@ from bokeh.embed import components
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
+from rest_framework.views import APIView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
+from django.http import HttpResponse
 from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
@@ -21,6 +23,7 @@ class RegisterApiView(generics.CreateAPIView):
     authentication_classes = (TokenAuthentication,)
     serializer_class = UserSerializer
 
+
 class UserApiView(generics.RetrieveAPIView):
     permission_classes = ''
     serializer_class = UserSerializer
@@ -28,24 +31,22 @@ class UserApiView(generics.RetrieveAPIView):
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
 
-class AnalysisApiView(generics.ListCreateAPIView):
+
+class AnalysisApiView(APIView):
     permission_classes = (IsAuthenticated, )
-    # print('Analysis API View function hits: Line 31 analysis_api/view.py')
     serializer_class = AnalysisSerializer
 
-    def get_queryset(self):
+    def get(self, *args, **kwargs):
         usr_obj = User.objects.get(username=self.request.user.username)
-        return Analysis.objects.filter(user_id=usr_obj.id)
+        return HttpResponse(Analysis.objects.filter(user_id=usr_obj.id))
 
-    def perform_create(self, serializer):
+    def post(self, *args, **kwargs):
         analysis_obj = analyze(self.request.data['text'])
         usr_obj = User.objects.get(username=self.request.user.username)
-        serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-        return analysis_obj
-        # print(self.request.data['text'])
-        # print(dir(self.request.data))
-        # pass
-        # serializer.save(user=self.request.user)
+        db_analysis, created = Analysis.objects.get_or_create(
+            analysis=analysis_obj,
+            user_id=usr_obj.id)
+        return HttpResponse(db_analysis)
 
 
 class AnalysisCreate(LoginRequiredMixin, CreateView):
