@@ -29,6 +29,8 @@ confusable_homoglyphs = "==3.2.0"
 "Jinja2" = "==2.10"
 MarkupSafe = "==1.1.0"
 Pillow = "==5.4.1"
+pandas = "*"
+pip = "*"
 
 [dev-packages]
 
