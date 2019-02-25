@@ -52,19 +52,28 @@ class AnalysisApiView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         analysis_obj = analyze(self.request.data['text'])
-        usr_obj = User.objects.get(username=self.request.user.username)
+        user_obj = User.objects.get(username=self.request.user.username)
+
+        # db_analysis_obj, created = Analysis.objects.get_or_create(analysis=analysis_obj, user_id=user_obj.id)
+        # serializer.save(db_analysis_obj)
+        # return db_analysis_obj
         try:
-            db_analysis_obj = Analysis.objects.get(analysis=analysis_obj, user_id=usr_obj.id)
+            db_analysis_obj = Analysis.objects.get(analysis=analysis_obj, user_id=user_obj.id)
+            reverse_lazy('analysis-exists', kwargs={'analysis': db_analysis_obj})
             print('Object Exists, Successfully Retrieved')
         except ObjectDoesNotExist:
-            db_analysis_obj = Analysis.objects.create(analysis=analysis_obj, user_id=usr_obj.id)
+            db_analysis_obj = Analysis.objects.create(analysis=analysis_obj, user_id=user_obj.id)
             print('Object Does Not Exist, Successfully Created')
-        # serializer(db_analysis_obj)
-        res_obj = AnalysisSerializer(db_analysis_obj)
-        json_obj = JSONRenderer.render(res_obj.data)
-        print(json_obj)
-        return Response(json_obj)
+            serializer.save(db_analysis_obj)
+        # # serializer(db_analysis_obj)
+        # res_obj = AnalysisSerializer(db_analysis_obj)
+        # json_obj = JSONRenderer.render(res_obj.data)
+        # print(json_obj)
+        # return Response(json_obj)
 
+def analysis_exists(analysis):
+    print(analysis)
+    return analysis
 
         # print(created)
         # if created is False:
