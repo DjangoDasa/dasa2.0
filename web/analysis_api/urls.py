@@ -12,7 +12,8 @@ urlpatterns = [
     path('register', RegisterApiView.as_view(), name='register'),
     path('login', views.obtain_auth_token),
     path('analysis', AnalysisApiView.as_view(), name='analysis-list'),
-    path('analysis/<chart>', AnalysisGraphApiView.as_view(), name='analysis-graph'),
+    path('chart', AnalysisGraphApiView.as_view(), name='analysis-graph')
+    # path('analysis/<chart>', AnalysisGraphApiView.as_view(), name='analysis-graph'),
 #     path('charts/{graph_type}', ChartApiView.as_view(), name='chart-detail'),
 
 ]

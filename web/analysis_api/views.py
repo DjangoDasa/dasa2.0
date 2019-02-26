@@ -65,21 +65,22 @@ class AnalysisApiView(APIView):
 
 
 
-class AnalysisGraphApiView(generics.ListCreateAPIView):
+class AnalysisGraphApiView(APIView):
     permission_classes = (IsAuthenticated, )
     serializer_class = AnalysisSerializer
 
-    def perform_create(self, serializer, *args, **kwargs):
-        chart_type = self.kwargs['chart']
+    def post(self, serializer, *args, **kwargs):
+        chart_type = self.request.data['chart']
+        analysis_obj = analyze(self.request.data['text'])
+        usr_obj = User.objects.get(username=self.request.user.username)
+        Analysis.objects.get_or_create(analysis=analysis_obj, user_id=usr_obj.id)
         if chart_type == "stacked_bar":
-            analysis_obj = analyze(self.request.data['text'])
-            usr_obj = User.objects.get(username=self.request.user.username)
+            analysis_obj = {'0': analysis_obj}
             # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-            db_analysis_obj, created = Analysis.objects.get_or_create(analysis=analysis_obj)
-
-            new_chart = Chart('stacked_bar', AnalysisSerializer(db_analysis_obj).data['analysis'])
+            new_chart = Chart('stacked_bar', analysis_obj)
             # print(db_analysis_obj)
-            return new_chart.stacked_bar()
+
+            return HttpResponse(new_chart.stacked_bar())
         else:
             return """Error: Choose a corresponding Graph:
             -> stacked_bar
