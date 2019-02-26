@@ -29,3 +29,13 @@ class AnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Analysis
         fields = ('id', 'analysis', 'date_uploaded', 'date_modified')
+    
+    def create(self, validated_data):
+        return Analysis(**validated_data)
+
+    # def update(self, instance, validated_data):
+    #     print(instance)
+    #     # instance.user_id = validated_data.get('user_id', instance.user_id)
+    #     instance.analysis = validated_data.get('analysis', instance.analysis)
+    #     instance.save()
+    #     return instance

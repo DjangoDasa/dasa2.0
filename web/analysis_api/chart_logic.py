@@ -20,6 +20,9 @@ from nltk.corpus import subjectivity
 from nltk.sentiment import SentimentAnalyzer
 from nltk.sentiment.util import *
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import logging
+logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s -  %(message)s')
+
 
 class Chart():
 
@@ -33,11 +36,14 @@ class Chart():
 
 
     def data_parser(self, data):
+        logging.debug(data)
         record_obj = data
-        print(record_obj, "this function hits!")
+        logging.debug(record_obj['Sentences'].keys())
         for sentence in record_obj['Sentences'].keys():
+            logging.debug(self.analysis_df)
             # key_list.append(sentence)
-            ss = record_obj['Sentences'][sentence]
+            ss = record_obj['Sentences'][sentence][1]
+            logging.debug(ss)
             ss['sentence'] = sentence
             columns = ['neg', 'neu', 'pos', 'compound', 'sentence']
             self.sentence_counter += 1
@@ -59,8 +65,8 @@ class Chart():
     def stacked_bar(self):
         if self.data == {} or self.data == None:
             return 'There is not data for this user'
-        for record in self.data:
-            self.data_parser(record)
+        for record in self.data.keys():
+            self.data_parser(self.data[record])
         self.set_df_parameters()
         p = figure(y_range=(0, 1.2), plot_height=500, title=str(self.aggregate) + "Sentiment Analysis",
             toolbar_location=None, tools="")
@@ -75,8 +81,9 @@ class Chart():
         p.outline_line_color = None
         p.legend.location = "top_left"
         p.legend.orientation = "horizontal"
-        html = file_html(p, CDN, "Stacked Bar")
-        return html
+        return p
+        # html = file_html(p, CDN, "Stacked Bar")
+        # return html
 
 
     def compound_bar(self):

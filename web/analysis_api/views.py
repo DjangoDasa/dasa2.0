@@ -6,11 +6,17 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.embed import components
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.views import APIView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 import json
+from django.http import HttpResponse
 from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
@@ -23,12 +29,14 @@ class RegisterApiView(generics.CreateAPIView):
     authentication_classes = (TokenAuthentication,)
     serializer_class = UserSerializer
 
+
 class UserApiView(generics.RetrieveAPIView):
     permission_classes = ''
     serializer_class = UserSerializer
 
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
+
 
 class UsersAllApiView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
@@ -37,41 +45,41 @@ class UsersAllApiView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.all()
 
-class AnalysisApiView(generics.ListCreateAPIView):
+
+class AnalysisApiView(APIView):
     permission_classes = (IsAuthenticated, )
-    # print('Analysis API View function hits: Line 31 analysis_api/view.py')
     serializer_class = AnalysisSerializer
 
-    def get_queryset(self):
+    def get(self, *args, **kwargs):
         usr_obj = User.objects.get(username=self.request.user.username)
-        return Analysis.objects.filter(user_id=usr_obj.id)
+        return HttpResponse(Analysis.objects.filter(user_id=usr_obj.id))
 
-    def perform_create(self, serializer):
+    def post(self, *args, **kwargs):
         analysis_obj = analyze(self.request.data['text'])
-        usr_obj = User.objects.get_or_create(username=self.request.user.username)
-        serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-        return analysis_obj
-        # print(self.request.data['text'])
-        # print(dir(self.request.data))
-        # pass
-        # serializer.save(user=self.request.user)
+        usr_obj = User.objects.get(username=self.request.user.username)
+        db_analysis, created = Analysis.objects.get_or_create(
+            analysis=analysis_obj,
+            user_id=usr_obj.id)
+        return HttpResponse(db_analysis)
 
 
-class AnalysisGraphApiView(generics.ListCreateAPIView):
+
+class AnalysisGraphApiView(APIView):
     permission_classes = (IsAuthenticated, )
     serializer_class = AnalysisSerializer
 
-    def perform_create(self, serializer, *args, **kwargs):
-        chart_type = self.kwargs['chart']
+    def post(self, serializer, *args, **kwargs):
+        chart_type = self.request.data['chart']
+        analysis_obj = analyze(self.request.data['text'])
+        usr_obj = User.objects.get(username=self.request.user.username)
+        Analysis.objects.get_or_create(analysis=analysis_obj, user_id=usr_obj.id)
         if chart_type == "stacked_bar":
-            analysis_obj = analyze(self.request.data['text'])
-            usr_obj = User.objects.get(username=self.request.user.username)
+            analysis_obj = {'0': analysis_obj}
             # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-            db_analysis_obj, created = Analysis.objects.get_or_create(analysis=analysis_obj)
-
-            new_chart = Chart('stacked_bar', AnalysisSerializer(db_analysis_obj).data['analysis'])
+            new_chart = Chart('stacked_bar', analysis_obj)
             # print(db_analysis_obj)
-            return new_chart.stacked_bar()
+
+            return HttpResponse(new_chart.stacked_bar())
         else:
             return """Error: Choose a corresponding Graph:
             -> stacked_bar
