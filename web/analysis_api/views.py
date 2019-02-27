@@ -21,7 +21,10 @@ from .nltk_processor import analyze
 from .forms import AnalysisForm
 from .serializers import Analysis, User
 from .serializers import UserSerializer, UserSerializerSimple, AnalysisSerializer
-from .chart_logic import stacked_bar_for_one, Chart
+from .chart_logic import Chart
+
+# logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s -  %(message)s')
+# # logging.disable(logging.CRITICAL)
 
 
 class RegisterApiView(generics.CreateAPIView):
@@ -73,30 +76,17 @@ class AnalysisGraphApiView(APIView):
         analysis_obj = analyze(self.request.data['text'])
         usr_obj = User.objects.get(username=self.request.user.username)
         Analysis.objects.get_or_create(analysis=analysis_obj, user_id=usr_obj.id)
-        if chart_type == "stacked_bar":
-            analysis_obj = {'0': analysis_obj}
-            # serializer.save(analysis=analysis_obj, user_id=usr_obj.id)
-            new_chart = Chart('stacked_bar', analysis_obj)
-            # print(db_analysis_obj)
-
-            return HttpResponse(new_chart.stacked_bar())
+        analysis_obj = {'0': analysis_obj}
+        chart_options = ['stacked_bar', 'compound_bar', 'pie_chart']
+        if chart_type in chart_options:
+            new_chart = Chart(chart_type, analysis_obj)
+            if chart_type == "stacked_bar":
+                new_chart = new_chart.stacked_bar()
+            elif chart_type == "compound_bar":
+                new_chart = new_chart.compound_bar()
+            return HttpResponse(new_chart)
         else:
-            return """Error: Choose a corresponding Graph:
-            -> stacked_bar
-            -> pie_chart
-            -> compound_bar
-            """
-
-
-
-    # def get_queryset(self):
-    #     usr_obj = User.objects.get(username=self.request.user.username)
-    #     user_data = Analysis.objects.filter(user_id=usr_obj.id)
-    #     for
-
-
-
-# class ChartAPIView(generics.)
+            return "Error: Choose a corresponding Graph: " + str(chart_options)
 
 
 
